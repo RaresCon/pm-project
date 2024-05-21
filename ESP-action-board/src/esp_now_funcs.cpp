@@ -3,6 +3,8 @@
 #include <esp_now.h>
 #include <comm_protocol.hpp>
 #include <sensors_data.hpp>
+#include <display.hpp>
+#include <rev_buzzer.hpp>
 
 static uint8_t slaveAddress[] = {0x10, 0x06, 0x1C, 0x80, 0x9F, 0x5C};
 static esp_now_peer_info_t peerInfo;
@@ -32,6 +34,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     }
 
     set_sensors_data(&sensors_data);
+    set_redraw_flag();
 
     free(recv_data.data);
     free(sensors_data.bmp_data);
@@ -79,16 +82,16 @@ void send_request_for_data()
     }
 
     printf("[ESP-NOW] sending request to slave | %u\n", request_len);
-    esp_now_send(get_slave_addr(), data, request_len);
+    esp_now_send(slaveAddress, data, request_len);
 
     free(data);
 
     should_request_data = false;
 }
 
-bool *get_request_flag()
+bool get_request_flag()
 {
-    return &should_request_data;
+    return should_request_data;
 }
 
 void set_request_flag()
