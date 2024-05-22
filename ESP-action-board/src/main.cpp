@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include <WiFi.h>
 #include <Wire.h>
-#include <esp_now.h>
 
 #include <comm_protocol.hpp>
 #include <esp_now_funcs.hpp>
@@ -10,6 +8,7 @@
 #include <rev_buzzer.hpp>
 #include <wiper.hpp>
 #include <headlight.hpp>
+#include <sensors_data.hpp>
 
 void setup_prereq()
 {
@@ -24,9 +23,14 @@ void setup() {
     setup_display();
     setup_rev_buzzer();
     setup_wiper();
+    setup_headlight();
     setup_request_timer();
 
-    delay(1000);
+    while (!check_sensors_data()) {
+        if (get_request_flag()) {
+            send_request_for_data();
+        }
+    }
 }
 
 void loop() {
@@ -37,10 +41,7 @@ void loop() {
         display_current_screen();
     }
 
-    if (get_current_screen() == REV_SCREEN) {
-        use_buzzer();
-    }
-
+    use_buzzer();
     use_wiper();
     use_headlight();
 }

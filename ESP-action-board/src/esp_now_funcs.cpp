@@ -5,6 +5,7 @@
 #include <sensors_data.hpp>
 #include <display.hpp>
 #include <rev_buzzer.hpp>
+#include <console_debug.hpp>
 
 static uint8_t slaveAddress[] = {0x10, 0x06, 0x1C, 0x80, 0x9F, 0x5C};
 static esp_now_peer_info_t peerInfo;
@@ -20,7 +21,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     tr_data_t recv_data;
     sensors_data_t sensors_data;
     memset(&recv_data, 0, sizeof(recv_data));
-    printf("[ESP-NOW] receiving response from slave | %d\n", len);
+    ESP_DEBUG("[ESP-NOW] receiving response from slave | %d\n", len);
 
     if (deserialize_tr_data((uint8_t *)incomingData, &recv_data) != SRDS_OK) {
         printf("[ERROR] SERDES: deserializing recv_data failed\n");
@@ -33,6 +34,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         return;
     }
 
+    reset_sensors_data();
     set_sensors_data(&sensors_data);
     set_redraw_flag();
 
@@ -43,7 +45,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 void setup_esp_now()
 {
     if (esp_now_init() != ESP_OK) {
-        Serial.println("Error initializing ESP-NOW");
+        printf("Error initializing ESP-NOW\n");
         return;
     }
 
@@ -54,7 +56,7 @@ void setup_esp_now()
     esp_now_register_recv_cb(OnDataRecv);
 
     if (esp_now_add_peer(&peerInfo) != ESP_OK){
-        Serial.println("Failed to add peer");
+        printf("Failed to add peer\n");
         return;
     }
 }
@@ -81,7 +83,7 @@ void send_request_for_data()
         return;
     }
 
-    printf("[ESP-NOW] sending request to slave | %u\n", request_len);
+    ESP_DEBUG("[ESP-NOW] sending request to slave | %u\n", request_len);
     esp_now_send(slaveAddress, data, request_len);
 
     free(data);
