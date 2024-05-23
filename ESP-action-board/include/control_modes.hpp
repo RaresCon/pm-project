@@ -1,8 +1,9 @@
 #pragma once
 
-typedef enum CONTROL {
+typedef enum control_t {
     AUTOMATIC,
-    LOW,
-    MID,
-    HIGH,
-} CONTROL;
+    CTL_OFF,
+    CTL_LOW,
+    CTL_MID,
+    CTL_HIGH,
+} control;

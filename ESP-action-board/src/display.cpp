@@ -1,12 +1,16 @@
 #include <Arduino.h>
 #include <Wire.h>
+
 #include <Adafruit_ST7789.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_I2CDevice.h>
 #include <SPI.h>
+
 #include <sensors_data.hpp>
 #include <display.hpp>
 #include <buttons.hpp>
+#include <headlight.hpp>
+#include <wiper.hpp>
 
 #define TFT_MOSI    23  // SDA Pin on ESP32
 #define TFT_SCLK    18  // SCL Pin on ESP32
@@ -52,7 +56,11 @@ void display_temperature() {
     sensors_data_t *current_data = get_current_sensors_data();
 
     tft.setTextSize(2);
-    tft.setTextColor(ST77XX_GREEN, ST77XX_BLACK);
+    if (get_critical_state()) {
+        tft.setTextColor(ST77XX_RED, ST77XX_BLACK);
+    } else {
+        tft.setTextColor(ST77XX_GREEN, ST77XX_BLACK);
+    }
 
     tft.setCursor(0, cursor_y);
 
@@ -72,10 +80,43 @@ void display_headlights() {
     if (screen_changed) {
         tft.fillScreen(ST77XX_CYAN);
         screen_changed = false;
+
+        tft.setTextSize(3);
+        tft.setCursor(40, 70);
+        tft.setTextColor(ST77XX_BLACK);
+        tft.printf("HEADLIGHT\n");
     }
 
-    sensors_data_t *current_data = get_current_sensors_data();
-    free(current_data);
+    tft.fillRect(80, 100, 75, 30, ST77XX_CYAN);
+
+    uint8_t control_mode = get_hl_control_mode();
+
+    tft.setCursor(85, 100);
+    tft.setTextColor(ST77XX_BLACK);
+    if (control_mode == AUTOMATIC) {
+        tft.printf("AUTO");
+
+        return;
+    } else if (control_mode == CTL_OFF) {
+        tft.printf("OFF");
+
+        return;
+    }
+
+    tft.setCursor(80, 100);
+    switch (control_mode) {
+        case CTL_LOW:
+            tft.printf("LOW");
+            break;
+        case CTL_MID:
+            tft.printf("MID");
+            break;
+        case CTL_HIGH:
+            tft.printf("HIGH");
+            break;
+        default:
+            break;
+    }
 }
 
 void display_wipers() {
@@ -84,29 +125,61 @@ void display_wipers() {
         screen_changed = false;
     }
 
-    sensors_data_t *current_data = get_current_sensors_data();
-    free(current_data);
+    uint8_t control_mode = get_hl_control_mode();
+
+    tft.setCursor(80, 120);
+    tft.setTextColor(ST77XX_BLACK, ST77XX_CYAN);
+    tft.printf("HEADLIGHT\n");
+
+    tft.setCursor(100, 150);
+    if (control_mode == AUTOMATIC) {
+        tft.printf("AUTO");
+
+        return;
+    } else if (control_mode == CTL_OFF) {
+        tft.printf("OFF");
+
+        return;
+    }
+
+    tft.setCursor(0, 120);
+    switch (control_mode) {
+        case CTL_LOW:
+            tft.printf("LOW");
+            break;
+        case CTL_MID:
+            tft.printf("MID");
+            break;
+        case CTL_HIGH:
+            tft.printf("HIGH");
+            break;
+        default:
+            break;
+    }
 }
 
 void display_reverse() {
     if (screen_changed) {
         tft.fillScreen(ST77XX_MAGENTA);
         screen_changed = false;
+
+        tft.setCursor(0, 110);
+        tft.setTextSize(2);
+        tft.setTextColor(ST77XX_GREEN);
+        tft.printf("Rear <-> object: ");
     }
 
     sensors_data_t *current_data = get_current_sensors_data();
-
-    tft.setTextSize(2);
-    tft.setTextColor(ST77XX_GREEN);
-
-    tft.setCursor(0, 110);
-    tft.fillRect(0, 100, 240, 100, ST77XX_MAGENTA);
 
     if (current_data->external.dist > 300) {
         current_data->external.dist = 0;
     }
 
-    tft.printf("Rear <-----> object: %hu\n", current_data->external.dist);
+    tft.setCursor(200, 110);
+    tft.setTextSize(2);
+    tft.fillRect(200, 110, 40, 15, ST77XX_MAGENTA);
+    tft.setTextColor(ST77XX_GREEN);
+    tft.printf("%hu\n", current_data->external.dist);
 
     free(current_data);
 }
