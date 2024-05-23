@@ -8,4 +8,3 @@ void setup_esp_now();
 void send_request_for_data();
 bool get_request_flag();
 void set_request_flag();
-uint8_t *get_slave_addr();

@@ -28,6 +28,12 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
         return;
     }
 
+    if (recv_data.type == CRITICAL) {
+        set_critical_state();
+    } else if (get_critical_state()) {
+        reset_critical_state();
+    }
+
     memset(&sensors_data, 0, sizeof(sensors_data));
     if (deserialize_sensor_info(recv_data.data, &sensors_data) != SRDS_OK) {
         printf("[ERROR] SERDES: deserializing sensors_data failed\n");
@@ -39,7 +45,6 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     set_redraw_flag();
 
     free(recv_data.data);
-    free(sensors_data.bmp_data);
 }
 
 void setup_esp_now()
@@ -99,9 +104,4 @@ bool get_request_flag()
 void set_request_flag()
 {
     should_request_data = true;
-}
-
-uint8_t *get_slave_addr()
-{
-    return slaveAddress;
 }

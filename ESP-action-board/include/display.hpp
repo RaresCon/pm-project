@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <control_modes.hpp>
+
 typedef enum SCREEN_TYPE {
     TEMP_SCREEN,
     HL_SCREEN,
