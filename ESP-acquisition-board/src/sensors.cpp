@@ -1,6 +1,10 @@
 #include <sensors.hpp>
 
 Adafruit_BMP280 bmp_sensors[BMP_SENS_NUM];
+static sensors_data_t sensors_data;
+static bool acquire_data_flag = false;
+static bool critical_data_flag = false;
+static bool can_transmit_data = false;
 
 void setup_sensors()
 {
@@ -15,6 +19,8 @@ void setup_sensors()
             Serial.println(bmp_sensors[i].sensorID());
         }
     }
+
+    alloc_sensors_data();
 }
 
 uint16_t retrieve_dist()
@@ -43,39 +49,75 @@ uint16_t retrieve_light()
     return analogRead(LIGHT_SENS_PIN);
 }
 
-int populate_sensors_data(sensors_data_t *data)
+void alloc_sensors_data()
 {
-    if (!data || (data->bmp_num && !data->bmp_data)) {
+    sensors_data.bmp_num = BMP_SENS_NUM;
+    sensors_data.bmp_data = (bmp_sensor_data_t *)malloc(sensors_data.bmp_num * sizeof(bmp_sensor_data_t));
+}
+
+int populate_sensors_data()
+{
+    if (sensors_data.bmp_num && !sensors_data.bmp_data) {
         return -1;
     }
 
-    data->external.dist = retrieve_dist();
-    data->external.rain = retrieve_rain();
-    data->external.light = retrieve_light();
+    sensors_data.external.dist = retrieve_dist();
+    sensors_data.external.rain = retrieve_rain();
+    sensors_data.external.light = retrieve_light();
 
     for (int i = 0; i < BMP_SENS_NUM; i++) {
-        data->bmp_data[i].sensor_id = i;
-        data->bmp_data[i].temp = bmp_sensors[i].readTemperature();
-        data->bmp_data[i].pres = bmp_sensors[i].readPressure();
+        sensors_data.bmp_data[i].sensor_id = i;
+        sensors_data.bmp_data[i].temp = bmp_sensors[i].readTemperature();
+        sensors_data.bmp_data[i].pres = bmp_sensors[i].readPressure();
+
+        if (sensors_data.bmp_data[i].temp > 30
+            || sensors_data.bmp_data[i].pres > 200000) {
+            critical_data_flag = true;
+        }
     }
 
     return 0;
 }
 
-sensors_data_t *alloc_sensors_data()
+sensors_data_t *get_current_sensors_data()
 {
-    sensors_data_t *data = (sensors_data_t *)malloc(sizeof(*data));
-    data->bmp_num = BMP_SENS_NUM;
-    data->bmp_data = (bmp_sensor_data_t *)malloc(data->bmp_num * sizeof(bmp_sensor_data_t));
+    sensors_data_t *sensors_data_copy = (sensors_data_t *)malloc(sizeof(*sensors_data_copy));
+    memcpy(sensors_data_copy, &sensors_data, sizeof(sensors_data));
 
-    return data;
+    return sensors_data_copy;
 }
 
-void free_sensors_data(sensors_data_t **data)
+void set_acquire_data_flag()
 {
-    if ((*data)->bmp_num) {
-        free((*data)->bmp_data);
-    }
+    acquire_data_flag = true;
+}
 
-    free(*data);
+bool get_acquire_data_flag()
+{
+    return acquire_data_flag;
+}
+
+void reset_critical_data_flag()
+{
+    critical_data_flag = false;
+}
+
+bool get_critical_data_flag()
+{
+    return critical_data_flag;
+}
+
+void set_can_transmit_data()
+{
+    can_transmit_data = true;
+}
+
+void reset_can_transmit_data()
+{
+    can_transmit_data = false;
+}
+
+bool get_can_transmit_data()
+{
+    return can_transmit_data;
 }
