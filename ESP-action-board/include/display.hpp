@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <control_modes.hpp>
+
 typedef enum SCREEN_TYPE {
     TEMP_SCREEN,
     HL_SCREEN,
@@ -11,5 +14,4 @@ void setup_display(void);
 void display_current_screen();
 bool get_redraw_flag();
 void set_redraw_flag();
-void inc_current_screen();
 uint8_t get_current_screen();

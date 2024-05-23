@@ -13,6 +13,6 @@ void setup_request_timer()
 {
     request_timer = timerBegin(0, 80, true);
     timerAttachInterrupt(request_timer, &ready_to_request_data, true);
-    timerAlarmWrite(request_timer, 500000, true);
+    timerAlarmWrite(request_timer, 800000, true);
     timerAlarmEnable(request_timer);
 }

@@ -4,3 +4,4 @@
 
 void setup_rev_buzzer();
 void use_buzzer();
+void disable_buzzer();
