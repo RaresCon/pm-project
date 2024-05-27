@@ -39,7 +39,7 @@ void setup_display(void) {
     Serial.begin(115200);
 
     tft.init(240, 240, SPI_MODE3);
-    tft.setRotation(0);
+    tft.setRotation(2);
     tft.fillScreen(ST77XX_ORANGE);
     pinMode(TFT_BUTTON, INPUT_PULLUP);
     attachInterrupt(TFT_BUTTON, tft_button_interrupt, FALLING);
@@ -95,11 +95,9 @@ void display_headlights() {
     tft.setTextColor(ST77XX_BLACK);
     if (control_mode == AUTOMATIC) {
         tft.printf("AUTO");
-
         return;
     } else if (control_mode == CTL_OFF) {
         tft.printf("OFF");
-
         return;
     }
 
@@ -123,26 +121,28 @@ void display_wipers() {
     if (screen_changed) {
         tft.fillScreen(ST77XX_RED);
         screen_changed = false;
+
+        tft.setTextSize(3);
+        tft.setCursor(60, 70);
+        tft.setTextColor(ST77XX_BLACK);
+        tft.printf("WIPERS\n");
     }
 
-    uint8_t control_mode = get_hl_control_mode();
+    tft.fillRect(70, 90, 80, 32, ST77XX_RED);
 
-    tft.setCursor(80, 120);
-    tft.setTextColor(ST77XX_BLACK, ST77XX_CYAN);
-    tft.printf("HEADLIGHT\n");
+    uint8_t control_mode = get_wiper_control_mode();
 
-    tft.setCursor(100, 150);
+    tft.setTextColor(ST77XX_BLACK, ST77XX_RED);
+    tft.setCursor(80, 100);
     if (control_mode == AUTOMATIC) {
         tft.printf("AUTO");
-
         return;
     } else if (control_mode == CTL_OFF) {
         tft.printf("OFF");
-
         return;
     }
 
-    tft.setCursor(0, 120);
+    tft.setCursor(80, 100);
     switch (control_mode) {
         case CTL_LOW:
             tft.printf("LOW");
@@ -160,12 +160,12 @@ void display_wipers() {
 
 void display_reverse() {
     if (screen_changed) {
-        tft.fillScreen(ST77XX_MAGENTA);
+        tft.fillScreen(ST77XX_GREEN);
         screen_changed = false;
 
         tft.setCursor(0, 110);
         tft.setTextSize(2);
-        tft.setTextColor(ST77XX_GREEN);
+        tft.setTextColor(ST77XX_WHITE);
         tft.printf("Rear <-> object: ");
     }
 
@@ -177,8 +177,8 @@ void display_reverse() {
 
     tft.setCursor(200, 110);
     tft.setTextSize(2);
-    tft.fillRect(200, 110, 40, 15, ST77XX_MAGENTA);
-    tft.setTextColor(ST77XX_GREEN);
+    tft.fillRect(200, 110, 40, 15, ST77XX_GREEN);
+    tft.setTextColor(ST77XX_WHITE);
     tft.printf("%hu\n", current_data->external.dist);
 
     free(current_data);

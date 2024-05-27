@@ -34,8 +34,6 @@ void use_wiper()
 {
     sensors_data_t *current_data;
 
-    Serial.println(current_control_mode);
-
     if (current_control_mode != AUTOMATIC) {
         switch (current_control_mode) {
             case CTL_OFF:
